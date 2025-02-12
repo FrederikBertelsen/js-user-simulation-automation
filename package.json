@@ -16,5 +16,8 @@
     "url": "https://github.com/FrederikBertelsen/js-user-simulation-automation/issues"
   },
   "homepage": "https://github.com/FrederikBertelsen/js-user-simulation-automation#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "playwright": "^1.50.1"
+  }
 }
