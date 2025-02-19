@@ -3,23 +3,37 @@ import { Page, Browser, chromium } from 'playwright';
 class InteractionPage {
   private page: Page;
   private browser: Browser;
+  private logsEnabled: boolean;
 
-  private constructor(page: Page, browser: Browser) {
+  private constructor(page: Page, browser: Browser, logsEnabled: boolean) {
     this.page = page;
     this.browser = browser;
+    this.logsEnabled = logsEnabled;
   }
 
-  static async build(): Promise<InteractionPage> {
+  static async build(localhost: boolean = false, headless: boolean = true, logsEnabled: boolean = true): Promise<InteractionPage> {
     console.log('Launching browser...');
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch({ headless: headless });
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const testPage = new InteractionPage(page, browser);
-    console.log('Navigating to test page URL...');
-    await page.goto('https://bachelor.15263748.xyz/index.html');
-    console.log('Page loaded!\n');
+    const testPage = new InteractionPage(page, browser, logsEnabled);
+
+    testPage.log('Navigating to test page URL...');
+    if (localhost) {
+      await page.goto('http://localhost:4000/index.html');
+    } else {
+      await page.goto('https://bachelor.15263748.xyz/index.html');
+    }
+
+    testPage.log('Page loaded!\n');
     return testPage;
+  }
+
+  log(message: string): void {
+    if (this.logsEnabled) {
+      console.log(message);
+    }
   }
 
   async randomSleep(minTime: number = 2000, maxTime: number = 3000, print: boolean = true): Promise<void> {
@@ -32,8 +46,7 @@ class InteractionPage {
 
     const sleepTime = Math.floor(Math.random() * (maxTime - minTime)) + minTime;
 
-    if (print)
-      console.log(`Random sleep (${minTime}ms, ${maxTime}ms) for: ${sleepTime}ms `);
+    this.log(`Random sleep (${minTime}ms, ${maxTime}ms) for: ${sleepTime}ms `);
 
     await this.page.waitForTimeout(sleepTime);
   }
@@ -43,13 +56,13 @@ class InteractionPage {
       throw new Error('Time must be positive');
     }
 
-    console.log(`Sleep for ${time}ms`);
+    this.log(`Sleep for ${time}ms`);
     await this.page.waitForTimeout(time);
   }
 
   async clickButton(): Promise<void> {
     await this.page.click('#btn-click');
-    console.log('Button clicked');
+    this.log('Button clicked');
   }
 
   async typeIntoInput(
@@ -70,29 +83,29 @@ class InteractionPage {
       await this.randomSleep(typeSpeedSlow, typeSpeedFast, false);
     }
 
-    console.log(`Finished typing into input (${typeSpeedSlow}ms - ${typeSpeedFast}ms): ${inputText}`);
+    this.log(`Finished typing into input (${typeSpeedSlow}ms - ${typeSpeedFast}ms): ${inputText}`);
   }
 
   async checkCheckbox(): Promise<void> {
     await this.page.check('#checkbox');
-    console.log('Checkbox checked');
+    this.log('Checkbox checked');
   }
 
   async selectRadioButton(optionNumber: number = 1): Promise<void> {
     const optionValue = `option${optionNumber}`;
     await this.page.check(`input[name="radio-group"][value="${optionValue}"]`);
-    console.log(`Radio button Option selected: ${optionNumber}`);
+    this.log(`Radio button Option selected: ${optionNumber}`);
   }
 
   async selectFromDropdown(optionNumber: number = 1): Promise<void> {
     const optionValue = `option${optionNumber}`;
     await this.page.selectOption('select#select', optionValue);
-    console.log(`Dropdown Option selected: ${optionNumber}`);
+    this.log(`Dropdown Option selected: ${optionNumber}`);
   }
 
   async cleanup(): Promise<void> {
     await this.browser.close();
-    console.log('\nBrowser closed');
+    this.log('\nBrowser closed');
   }
 }
 
