@@ -1,42 +1,57 @@
 import { Page, Browser, chromium } from 'playwright';
+import ClientLoggerType from './client_logger_type';
+import ServerLoggerType from './server_logger_type';
+import LogLevelType from './log_level_type';
 
 class InteractionPage {
+  private browserId: number;
   private page: Page;
   private browser: Browser;
-  private logsEnabled: boolean;
+  private clientConsoleLogsEnabled: boolean;
 
-  private constructor(page: Page, browser: Browser, logsEnabled: boolean) {
+  private constructor(browserId: number = -1, page: Page, browser: Browser, logsEnabled: boolean) {
+    this.browserId = browserId;
     this.page = page;
     this.browser = browser;
-    this.logsEnabled = logsEnabled;
+    this.clientConsoleLogsEnabled = logsEnabled;
   }
 
-  static async build(localhost: boolean = false, headless: boolean = true, logsEnabled: boolean = true): Promise<InteractionPage> {
-    console.log('Launching browser...');
+  static async build(
+    browserId: number = -1,
+    localhost: boolean = false,
+    headless: boolean = true,
+    enableClientConsoleLogs: boolean = true,
+    clientLogger: ClientLoggerType = ClientLoggerType.justFetch
+  ): Promise<InteractionPage> {
+
+    
     const browser = await chromium.launch({ headless: headless });
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const testPage = new InteractionPage(page, browser, logsEnabled);
+    const testPage = new InteractionPage(browserId, page, browser, enableClientConsoleLogs);
 
+    // select client logger
     testPage.log('Navigating to test page URL...');
-    if (localhost) {
-      await page.goto('http://localhost:4000/index.html');
-    } else {
-      await page.goto('https://bachelor.15263748.xyz/index.html');
-    }
+    let domain = localhost ? 'http://localhost:4000' : 'https://bachelor.15263748.xyz';
+    let pageUrl = `/${clientLogger}.html`;
+    let url = domain + pageUrl;
+    await page.goto(url);
+    testPage.log(`Navigated to: ${url}`);
 
-    testPage.log('Page loaded!\n');
     return testPage;
   }
 
   log(message: string): void {
-    if (this.logsEnabled) {
-      console.log(message);
+    if (this.clientConsoleLogsEnabled) {
+      console.log(`${this.browserId}: ${message}`);
     }
   }
 
   async randomSleep(minTime: number = 2000, maxTime: number = 3000, print: boolean = true): Promise<void> {
+    if (minTime == 0 && maxTime == 0) {
+      return;
+    }
     if (minTime > maxTime) {
       throw new Error('Min value must be less than max value');
     }
@@ -105,7 +120,7 @@ class InteractionPage {
 
   async cleanup(): Promise<void> {
     await this.browser.close();
-    this.log('\nBrowser closed');
+    this.log('Browser closed');
   }
 }
 

@@ -1,17 +1,24 @@
-import InteractionPage from './interaction-page.ts';
-import { runUserSimulation } from './runner.ts';
+import ClientLoggerType from './models/client_logger_type.ts';
+import InteractionPage from './models/interaction-page.ts';
+import LogLevelType from './models/log_level_type.ts';
+import ServerLoggerType from './models/server_logger_type.ts';
+import { runUserSimulations } from './runner.ts';
 
-for (var i = 0; i < 10; i++) {
-  runUserSimulation(
-    /* localhost */ true,
-    /* headless */ true,
-    /* enable logging to console */ false,
-    async (page: InteractionPage) => {
-      for (var i = 0; i < 1000; i++) {
-        await page.clickButton();
-        // await page.checkCheckbox();
-        // await page.selectRadioButton();
-        // await page.selectFromDropdown();
-      }
-    });
-}
+runUserSimulations(
+  /* browser count */ 5,
+  /* localhost */ false,
+  /* headless */ true,
+  /* enable logging to client console */ false,
+  /* client logger */ ClientLoggerType.justFetch,
+  /* server logger */ ServerLoggerType.Console,
+  /* log level */ LogLevelType.Info,
+
+  /* simulation function */
+  async (page: InteractionPage) => {
+    const superString = "X".repeat(100000);
+
+    await page.sleep(5000);
+
+    await page.typeIntoInput(superString, 0, 0);
+  }
+);
