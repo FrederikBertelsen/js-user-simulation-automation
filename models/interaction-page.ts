@@ -23,11 +23,15 @@ class InteractionPage {
     enableClientConsoleLogs: boolean = true,
     clientLogger: ClientLoggerType = ClientLoggerType.justFetch
   ): Promise<InteractionPage> {
-
-    
     const browser = await chromium.launch({ headless: headless });
     const context = await browser.newContext();
     const page = await context.newPage();
+
+    page.on('download', download => {
+      const timestamp = new Date().getTime();
+      download.saveAs(`./downloads/${timestamp}-${download.suggestedFilename()}`);
+    });
+
 
     const testPage = new InteractionPage(browserId, page, browser, enableClientConsoleLogs);
 
