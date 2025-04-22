@@ -84,6 +84,11 @@ class InteractionPage {
     this.log('Button clicked');
   }
 
+  async clickBigButton(): Promise<void> {
+    await this.page.click('#btn-click-big');
+    this.log('BIG Button clicked');
+  }
+
   async downloadTimes(): Promise<void> {
     this.page.click('#download-button');
     await this.page.waitForEvent('download');
