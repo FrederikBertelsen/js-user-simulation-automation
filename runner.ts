@@ -2,6 +2,7 @@ import ClientLoggerType from './models/client_logger_type.ts';
 import InteractionPage from './models/interaction-page.ts';
 import LogLevelType from './models/log_level_type.ts';
 import ServerLoggerType from './models/server_logger_type.ts';
+import { performance } from 'perf_hooks';
 
 // Define the type for the simulation function
 type SimulationFunction = (page: InteractionPage) => Promise<void>;
@@ -46,8 +47,14 @@ export async function runUserSimulations(
 
     try {
       console.log(`${browserId}: SIMULATION STARTED`);
+      const startTime = performance.now();
       await simulationFn(page);
-      console.log(`${browserId}: SIMULATION COMPLETED`);
+      console.log(`${browserId}: SIMULATION COMPLETED in ${performance.now() - startTime} ms`);
+
+      await page.randomSleep(0, 10000);
+      await page.downloadTimes();
+      await page.sleep(5000);
+
     } catch (error) {
       console.error('An error occurred during the user simulation:', error);
       throw error;

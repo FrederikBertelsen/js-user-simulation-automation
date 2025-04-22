@@ -27,9 +27,9 @@ class InteractionPage {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    page.on('download', download => {
+    page.on('download', async download => {
       const timestamp = new Date().getTime();
-      download.saveAs(`./downloads/${timestamp}-${download.suggestedFilename()}`);
+      await download.saveAs(`./downloads/${timestamp}-${download.suggestedFilename()}`);
     });
 
 
@@ -82,6 +82,11 @@ class InteractionPage {
   async clickButton(): Promise<void> {
     await this.page.click('#btn-click');
     this.log('Button clicked');
+  }
+
+  async downloadTimes(): Promise<void> {
+    this.page.click('#download-button');
+    await this.page.waitForEvent('download');
   }
 
   async typeIntoInput(
